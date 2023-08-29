@@ -10,6 +10,10 @@ RED = (255, 0, 0)
 ZASHCITA = 0
 ORUZHIE = 1
 
+
+KOR = (156, 96, 23)
+ZEL = (23, 156, 30)
+
 # ___Характеристики способностей___
 
 # __SharMolniay__
@@ -1001,7 +1005,49 @@ class Shchit(arcade.Sprite):
 
 
 # Стихия земли
+class Kulak_Gaia(arcade.Sprite):
+    def __init__(self, x, y, sprite_list=None, sprite=None):
+        super().__init__()
+        self.sprite_list = sprite_list
+        self.sprite = sprite
+        self.radius = Radius(0)
+        self.x = x
+        self.y = y
+        self.s2 = 0
+        self.s = 301
+        self.udar = False
+        self.drav = False
 
+    def update_animation(self, delta_time: float = 1 / 60):
+        self.s += 1
+        if self.s <= 300:
+            self.udar = False
+            return
+        if self.udar and self.s2 < 3 and self.s > 300:
+            arcade.draw_rectangle_filled(self.x, self.y, 128, 128, KOR)
+            arcade.draw_rectangle_filled(self.x, self.y + 45, 128, 40, ZEL)
+
+        if self.s2 >= 3:
+            self.udar = False
+            self.s = 0
+        if self.udar:
+            self.s2 += 1
+        elif not self.udar:
+            self.s2 = 0
+
+    def on_update(self, delta_time: float = 1 / 60):
+        self.radius.position = self.x, self.y
+
+        if self.sprite_list is not None:
+            if arcade.check_for_collision_with_list(self.radius, self.sprite_list) and self.s2 == 1 and self.udar:
+                for sprite in self.sprite_list:
+                    if arcade.check_for_collision(self.radius, sprite):
+                        sprite.oglush = True
+                        sprite.hp -= 30
+
+        if self.sprite is not None:
+            if arcade.check_for_collision(self.radius, self.sprite) and self.s2 == 1 and self.udar:
+                self.sprite.hp -= 30
 
 
 def block_func(pers, sprite, force=None):
