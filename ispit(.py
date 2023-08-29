@@ -295,6 +295,50 @@ class GnevTora(arcade.Sprite):
             if arcade.check_for_collision(self.radius, self.sprite) and self.s2 == 1 and self.udar:
                 self.sprite.hp -= 20
 
+class Kulak_Gaia(arcade.Sprite):
+    def __init__(self, x, y, sprite_list=None, sprite=None):
+        super().__init__()
+        self.sprite_list = sprite_list
+        self.sprite = sprite
+        self.radius = Radius(0)
+        self.x = x
+        self.y = y
+        self.s2 = 0
+        self.s = 301
+        self.udar = False
+        self.drav = False
+
+    def update_animation(self, delta_time: float = 1 / 60):
+        self.s += 1
+        if self.s <= 300:
+            self.udar = False
+            return
+        if self.udar and self.s2 < 3 and self.s > 300:
+            arcade.draw_rectangle_filled(self.x, self.y, 128, 128, KOR)
+            arcade.draw_rectangle_filled(self.x, self.y + 45, 128, 40, ZEL)
+
+        if self.s2 >= 3:
+            self.udar = False
+            self.s = 0
+        if self.udar:
+            self.s2 += 1
+        elif not self.udar:
+            self.s2 = 0
+
+    def on_update(self, delta_time: float = 1 / 60):
+        self.radius.position = self.x, self.y
+
+        if self.sprite_list is not None:
+            if arcade.check_for_collision_with_list(self.radius, self.sprite_list) and self.s2 == 1 and self.udar:
+                for sprite in self.sprite_list:
+                    if arcade.check_for_collision(self.radius, sprite):
+                        sprite.oglush = True
+                        sprite.hp -= 30
+
+        if self.sprite is not None:
+            if arcade.check_for_collision(self.radius, self.sprite) and self.s2 == 1 and self.udar:
+                self.sprite.hp -= 30
+
 
 class Vrag1(arcade.Sprite):
     def __init__(self):
@@ -626,10 +670,13 @@ class IgraViev(arcade.View):
         self.radius = None
         self.molniya = None
         self.gnevTora = None
+        self.kulak_gaia = None
         self.shit = None
 
         self.levo = False
         self.pravo = False
+        self.levo_l = False
+        self.pravo_l = False
         self.molniya_ataka = False
         self.beg = False
 
@@ -689,6 +736,7 @@ class IgraViev(arcade.View):
         self.radius = arcade.Sprite("C:/Users/user/Desktop/Igra/nuzhno/radius_porazheniya.png", 0.204)
         self.palka_list = arcade.SpriteList()
         self.gnevTora = GnevTora(self.igrok.center_x, self.igrok.center_y, self.celi_milnii_list)
+        self.kulak_gaia = Kulak_Gaia(self.igrok.center_x, self.igrok.center_y, self.celi_milnii_list)
 
         self.list_Vrag = arcade.SpriteList()
 
@@ -764,6 +812,12 @@ class IgraViev(arcade.View):
     def on_update(self, delta_time: float):
         self.gnevTora.on_update()
         self.gnevTora.x, self.gnevTora.y = self.igrok.position
+        self.kulak_gaia.on_update()
+        if self.pravo_l:
+            self.kulak_gaia.x = self.igrok.center_x + 100
+        if self.levo_l:
+            self.kulak_gaia.x = self.igrok.center_x - 100
+        self.kulak_gaia.y = self.igrok.center_y + 25
         for vrag in self.list_Vrag:
             vrag.on_update()
 
@@ -837,6 +891,7 @@ class IgraViev(arcade.View):
             self.igrok.position = self.molniya.koordinati()
 
         self.gnevTora.update_animation()
+        self.kulak_gaia.update_animation()
 
         self.center_kamera_za_igrok()
         self.kamera.use()
@@ -847,6 +902,9 @@ class IgraViev(arcade.View):
 
         if symbol == arcade.key.NUM_0:
             self.gnevTora.udar = True
+
+        if symbol == arcade.key.Q:
+            self.kulak_gaia.udar = True
 
         if symbol == arcade.key.LEFT:
             self.levo = True
